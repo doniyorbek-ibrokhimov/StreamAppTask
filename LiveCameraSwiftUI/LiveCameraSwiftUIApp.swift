@@ -4,7 +4,7 @@ import SwiftUI
 struct LiveCameraSwiftUIApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AppView()
         }
     }
 }

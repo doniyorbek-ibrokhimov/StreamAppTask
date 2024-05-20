@@ -43,7 +43,8 @@ class FrameHandler: NSObject, ObservableObject {
         let videoOutput = AVCaptureVideoDataOutput()
         
         guard permissionGranted else { return }
-        guard let videoDevice = AVCaptureDevice.default(.builtInDualWideCamera,for: .video, position: .back) else { return }
+        //FIXME: (doni) add button to switch between the cameras to get the optimal one
+        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera,for: .video, position: .front) else { return }
         guard let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice) else { return }
         guard captureSession.canAddInput(videoDeviceInput) else { return }
         captureSession.addInput(videoDeviceInput)
