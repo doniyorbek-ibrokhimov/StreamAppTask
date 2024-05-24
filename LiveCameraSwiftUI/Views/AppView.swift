@@ -1,42 +1,53 @@
 import SwiftUI
 
-
 struct AppView: View {
-    @StateObject private var model = CameraHandler()
-    
     var body: some View {
         VStack(spacing: 0) {
             TopView()
-                .background(Color.cyan)
+                .padding(.top, 5)
+                .background(Color.accentColor)
             
-            VStack {
-                Color.clear
-                
-                Text("Viewers chat")
-                    .foregroundStyle(.gray)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                
-                CommentsViews()
+            GeometryReader { proxy in
+                VStack(spacing: 0) {
+                    Color.clear
+                    ChatHeaderView()
+                    CommentsViews()
+                }
+                .padding(.horizontal)
+                .background {
+                    CameraView(width: proxy.size.width,
+                               height: proxy.size.height,
+                               model: .init())
+                }
             }
-            .background { CameraView(image: model.frame) }
             
             BottomView()
-                .background(Color.cyan)
+                .padding(.bottom, 5)
+                .background(Color.accentColor)
+            
         }
     }
 }
 
-struct CommentsViews: View {
+private struct ChatHeaderView: View {
+    var body: some View {
+        Text("Viewers chat")
+            .foregroundColor(.gray)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct CommentsViews: View {
     var body: some View {
         ScrollView {
-            ForEach(0..<10) { i in
+            ForEach(0..<10) { _ in
                 CommentView()
             }
         }
     }
 }
 
-struct CommentView: View {
+private struct CommentView: View {
     var body: some View {
         VStack(alignment: .leading) {
             HStack {
@@ -56,27 +67,25 @@ struct CommentView: View {
     }
 }
 
-struct BottomView: View {
+private struct BottomView: View {
     var body: some View {
         HStack {
             CommentInputView()
-            ReactionView(reaction: "♥️", color: .red)
-            ReactionView(reaction: "🥂", color: .brown)
-            ReactionView(reaction: "🤩", color: .yellow)
+            ReactionView(reaction: "♥️", backgroundColor: .red)
+            ReactionView(reaction: "🥂", backgroundColor: .brown)
+            ReactionView(reaction: "🤩", backgroundColor: .yellow)
         }
         .padding(.horizontal)
         .padding(.top, 8)
     }
 }
 
-import SwiftUI
-
-struct CustomTextField: View {
+private struct CustomTextField: View {
     @Binding var text: String
     var placeholder: String
     var placeholderColor: Color
     var textColor: Color
-
+    
     var body: some View {
         ZStack(alignment: .leading) {
             if text.isEmpty {
@@ -85,39 +94,33 @@ struct CustomTextField: View {
             }
             TextField("", text: $text)
                 .foregroundColor(textColor)
+                .disabled(true)
         }
     }
 }
 
 
-struct CommentInputView: View {
-    @State var input: String = ""
+private struct CommentInputView: View {
+    @State private var input: String = ""
+    private let accentColor: Color = .gray
     
     var body: some View {
         HStack {
-//            TextField("Comment...", text: $input)
-            CustomTextField(text: $input, placeholder: "Comment...", placeholderColor: .white, textColor: .white)
-                
+            CustomTextField(text: $input, placeholder: "Comment...", placeholderColor: accentColor, textColor: accentColor)
+            
             Image(systemName: "paperplane.fill")
         }
-        .foregroundStyle(.white)
+        .foregroundStyle(accentColor)
         .padding()
         .overlay {
             RoundedRectangle(cornerRadius: 10)
                 .stroke(lineWidth: 1)
-                .fill(.white)
+                .fill(accentColor)
         }
-        
     }
 }
 
-struct preview: PreviewProvider {
-    static var previews: some View {
-        AppView()
-    }
-}
-
-struct TopView: View {
+private struct TopView: View {
     var body: some View {
         HStack {
             UserView()
@@ -137,51 +140,61 @@ struct TopView: View {
     }
 }
 
-struct UserView: View {
+private struct UserView: View {
     var body: some View {
         HStack {
-            HStack {
-                VStack(alignment: .leading) {
-                    Text("Annie Bae")
-                    Text("TOP 20")
-                }
-                .lineLimit(1)
-                .fixedSize(horizontal: true, vertical: false)
-                .foregroundStyle(.white)
-                .font(.subheadline)
-                
-                Image(systemName: "heart.fill")
-                    .foregroundStyle(.white)
-                    .padding(5)
-                    .background(.pink)
-                    .cornerRadius(3)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .padding(.leading)
-            .background(Color.purple)
-            .cornerRadius(3)
-            .padding(.leading, 30)
-            
+            UserDetailsView()
+                .foregroundColor(.white)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .padding(.leading)
+                .background(Color.userProfileBackgroundColor)
+                .cornerRadius(10)
+                .padding(.leading, 25)
         }
         .overlay(alignment: .leading) {
-            Image(systemName: "person")
-                .font(.system(size: 45))
-                .background(.yellow)
-                .clipShape(.circle)
-                .overlay {
-                    Circle()
-                        .stroke(lineWidth: 2)
-                        .fill(Color.blue)
-                }
-                .padding(.vertical, 13)
-                .overlay(alignment: .top) {
-                    Image(systemName: "crown.fill")
-                        .foregroundStyle(.blue)
-                }
+            ProfileImageView()
         }
-        
-        
-        
     }
+}
+
+private struct UserDetailsView: View {
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading) {
+                Text("Annie Bae")
+                Text("TOP 20")
+            }
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
+            .font(.subheadline)
+            
+            Image(systemName: "heart.fill")
+                .padding(5)
+                .background(Color.pink)
+                .cornerRadius(3)
+        }
+    }
+}
+
+private struct ProfileImageView: View {
+    var body: some View {
+        Image(systemName: "person")
+            .font(.system(size: 45))
+            .background(Color.yellow)
+            .clipShape(Circle())
+            .overlay(
+                Circle()
+                    .stroke(.blue, lineWidth: 2)
+            )
+            .padding(.vertical, 13)
+            .overlay(alignment: .top) {
+                Image(systemName: "crown.fill")
+                    .foregroundColor(.blue)
+            }
+    }
+}
+
+#Preview {
+    AppView()
 }

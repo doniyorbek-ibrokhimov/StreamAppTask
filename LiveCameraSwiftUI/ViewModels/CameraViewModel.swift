@@ -1,7 +1,6 @@
 import AVFoundation
 import CoreImage
 
-//FIXME: (doni) rename to `CameraViewModel`
 class CameraViewModel: NSObject, ObservableObject {
     @Published var frame: CGImage?
     private var permissionGranted = true
@@ -19,7 +18,7 @@ class CameraViewModel: NSObject, ObservableObject {
         }
     }
     
-    func checkPermission() {
+    private func checkPermission() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
             case .authorized:
                 self.permissionGranted = true
@@ -32,13 +31,13 @@ class CameraViewModel: NSObject, ObservableObject {
         }
     }
     
-    func requestPermission() {
+    private func requestPermission() {
         AVCaptureDevice.requestAccess(for: .video) { [unowned self] granted in
             self.permissionGranted = granted
         }
     }
     
-    func setupCaptureSession() {
+    private func setupCaptureSession() {
         let videoOutput = AVCaptureVideoDataOutput()
         
         guard permissionGranted else { return }

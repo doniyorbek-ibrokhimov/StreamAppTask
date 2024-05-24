@@ -1,14 +1,22 @@
 import SwiftUI
 
 struct CameraView: View {
-    var image: CGImage?
+    let width: CGFloat
+    let height: CGFloat
+    @ObservedObject var model: CameraViewModel
+    
     private let label = Text("frame")
     
+    
     var body: some View {
-        if let image = image {
-            Image(image, scale: 1.0, orientation: .up, label: label)
+        if let image = model.frame {
+            Image(image,
+                  scale: 1.0,
+                  orientation: .up,
+                  label: label)
                 .resizable()
-                .scaledToFit()
+                .frame(width: width, height: height)
+                .aspectRatio(contentMode: .fit)
         } else {
             Color.black
         }
@@ -17,6 +25,6 @@ struct CameraView: View {
 
 struct FrameView_Previews: PreviewProvider {
     static var previews: some View {
-        CameraView()
+        CameraView(width: 300, height: 300, model: .init())
     }
 }
