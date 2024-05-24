@@ -1,7 +1,8 @@
 import AVFoundation
 import CoreImage
 
-class FrameHandler: NSObject, ObservableObject {
+//FIXME: (doni) rename to `CameraViewModel`
+class CameraViewModel: NSObject, ObservableObject {
     @Published var frame: CGImage?
     private var permissionGranted = true
     private let captureSession = AVCaptureSession()
@@ -20,20 +21,18 @@ class FrameHandler: NSObject, ObservableObject {
     
     func checkPermission() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
-            case .authorized: // The user has previously granted access to the camera.
+            case .authorized:
                 self.permissionGranted = true
                 
-            case .notDetermined: // The user has not yet been asked for camera access.
+            case .notDetermined:
                 self.requestPermission()
                 
-        // Combine the two other cases into the default case
         default:
             self.permissionGranted = false
         }
     }
     
     func requestPermission() {
-        // Strong reference not a problem here but might become one in the future.
         AVCaptureDevice.requestAccess(for: .video) { [unowned self] granted in
             self.permissionGranted = granted
         }
@@ -43,7 +42,6 @@ class FrameHandler: NSObject, ObservableObject {
         let videoOutput = AVCaptureVideoDataOutput()
         
         guard permissionGranted else { return }
-        //FIXME: (doni) add button to switch between the cameras to get the optimal one
         guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera,for: .video, position: .front) else { return }
         guard let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice) else { return }
         guard captureSession.canAddInput(videoDeviceInput) else { return }
@@ -52,16 +50,20 @@ class FrameHandler: NSObject, ObservableObject {
         videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "sampleBufferQueue"))
         captureSession.addOutput(videoOutput)
         
-        videoOutput.connection(with: .video)?.videoOrientation = .portrait
+        if let connection = videoOutput.connection(with: .video) {
+            if connection.isVideoMirroringSupported {
+                connection.isVideoMirrored = true
+            }
+            connection.videoRotationAngle = 90
+        }
     }
 }
 
 
-extension FrameHandler: AVCaptureVideoDataOutputSampleBufferDelegate {
+extension CameraViewModel: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let cgImage = imageFromSampleBuffer(sampleBuffer: sampleBuffer) else { return }
         
-        // All UI updates should be/ must be performed on the main queue.
         DispatchQueue.main.async { [unowned self] in
             self.frame = cgImage
         }
